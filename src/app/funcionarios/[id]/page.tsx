@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation'
 import EmployeeImageHeader from '@/components/EmployeeImageHeader'
 import EmployeeActions from '@/components/EmployeeActions'
 
-export default async function EmployeeDetailsPage({ params }: { params: { id: string } }) {
+export default async function EmployeeDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const supabase = await createClient()
     const { id } = await params
 

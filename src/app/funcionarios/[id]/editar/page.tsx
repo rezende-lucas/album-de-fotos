@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import EmployeeForm from '@/components/EmployeeForm'
 
-export default async function EditEmployeePage({ params }: { params: { id: string } }) {
+export default async function EditEmployeePage({ params }: { params: Promise<{ id: string }> }) {
     const supabase = await createClient()
     const { id } = await params
 
