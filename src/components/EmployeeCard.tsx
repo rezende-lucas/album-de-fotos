@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { FuncionarioListItem } from '@/types'
-import { User, MapPin } from 'lucide-react'
+import { User, MapPin, Siren } from 'lucide-react'
+import { formatRelativeDate } from '@/lib/format'
 
 interface EmployeeCardProps {
     funcionario: FuncionarioListItem
@@ -47,6 +48,12 @@ export default function EmployeeCard({ funcionario }: EmployeeCardProps) {
                             <div className="flex items-center gap-1 mt-1 text-xs text-fg-subtle">
                                 <MapPin className="h-3 w-3 flex-shrink-0" />
                                 <span className="truncate">{address}</span>
+                            </div>
+                        )}
+                        {funcionario.ultima_abordagem_em && (
+                            <div className="flex items-center gap-1 mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+                                <Siren className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">Última abordagem {formatRelativeDate(funcionario.ultima_abordagem_em)}</span>
                             </div>
                         )}
                     </div>

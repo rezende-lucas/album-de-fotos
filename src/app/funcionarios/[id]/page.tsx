@@ -1,13 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
-import { User, MapPin, FileText, Calendar, Pencil, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { User, MapPin, FileText, Calendar, Pencil, Trash2, Siren } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import EmployeeImageHeader from '@/components/EmployeeImageHeader'
 import EmployeeActions from '@/components/EmployeeActions'
 import TrashActions from '@/components/TrashActions'
+import AbordagensTimeline from '@/components/AbordagensTimeline'
 import { getNomesUsuarios, getPerfil } from '@/lib/auth'
 import { getFotosComUrls, getSignedPhotoUrl } from '@/lib/photos'
 import { formatCep, formatCpf, formatDate } from '@/lib/format'
-import type { Funcionario, FotoView } from '@/types'
+import type { Abordagem, Funcionario, FotoView } from '@/types'
 
 export default async function EmployeeDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const supabase = await createClient()
@@ -24,10 +26,15 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
     }
 
     const funcionario = data as Funcionario
-    const [fotos, perfil, nomes] = await Promise.all([
+    const [fotos, perfil, { data: abordagensData }] = await Promise.all([
         getFotosComUrls(supabase, funcionario.id),
         getPerfil(),
-        getNomesUsuarios([funcionario.user_id, funcionario.updated_by, funcionario.deleted_by]),
+        supabase.from('abordagens').select('*').eq('funcionario_id', funcionario.id).order('data_hora', { ascending: false })
+            .order('created_at', { ascending: false }),
+    ])
+    const abordagens = (abordagensData ?? []) as Abordagem[]
+    const nomes = await getNomesUsuarios([
+        funcionario.user_id, funcionario.updated_by, funcionario.deleted_by, ...abordagens.map((a) => a.agente_id),
     ])
     const isAdmin = perfil?.papel === 'admin'
     const nomeDe = (userId?: string | null) => (userId && nomes[userId]) || null
@@ -63,6 +70,16 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
                         </p>
                         <TrashActions id={funcionario.id} redirectAfterDelete="/admin/lixeira" />
                     </div>
+                )}
+
+                {!funcionario.deleted_at && (
+                    <Link
+                        href={`/funcionarios/${funcionario.id}/abordagens/nova`}
+                        className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm active:scale-[0.98] transition-all"
+                    >
+                        <Siren className="h-5 w-5" />
+                        Registrar abordagem
+                    </Link>
                 )}
 
                 <div className="bg-surface rounded-2xl shadow-sm border border-line p-6 space-y-6">
@@ -114,6 +131,17 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
                             )}
                         </div>
                     </Section>
+
+                    <hr className="border-line" />
+
+                    <AbordagensTimeline
+                        funcionarioId={funcionario.id}
+                        abordagens={abordagens}
+                        fotos={fotos}
+                        nomes={nomes}
+                        perfil={perfil}
+                        podeRegistrar={!funcionario.deleted_at}
+                    />
 
                     <hr className="border-line" />
 

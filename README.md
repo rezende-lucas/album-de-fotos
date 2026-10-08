@@ -36,6 +36,7 @@ Acesse `https://localhost:3000` (o modo dev usa HTTPS para liberar a câmera no 
 - **Dashboard**: Lista paginada (rolagem infinita) com busca no banco sem acentos por nome, apelido, filiação, endereço, CPF ou RG (com ou sem pontuação) e filtro por cidade.
 - **Interface**: Modo escuro automático (segue o sistema), layout adaptado para computador, avisos de confirmação e diálogos próprios.
 - **Cadastro**: Formulário otimizado para mobile, validação de CPF (dígitos verificadores) e preenchimento de endereço pelo CEP (ViaCEP).
+- **Histórico de abordagens**: Botão **Nova abordagem** busca a pessoa por CPF ou nome; se ela já existir, a abordagem entra no histórico dela, senão o cadastro é feito junto. Cada abordagem guarda data/hora, local (GPS do aparelho + endereço aproximado), motivo, observações, agente e fotos. A ficha mostra a linha do tempo com mapa; a lista mostra a última abordagem. O agente edita as próprias abordagens; o admin edita e remove qualquer uma.
 - **Álbum de fotos**: Até 20 fotos por pessoa (rosto, perfil, corpo, tatuagem/sinal, documento…) com legenda e foto principal (★). As fotos são comprimidas no próprio aparelho e ganham uma miniatura leve para a lista e a galeria. Na ficha, a galeria abre em tela cheia com setas, deslizar e Esc.
 - **Perfis de acesso**: **Agentes** cadastram e editam; **Administradores** também excluem (lixeira), restauram, apagam definitivamente, consultam a auditoria e definem o papel dos usuários (ícone de escudo na tela inicial → Administração).
 - **Lixeira e auditoria**: Exclusões são reversíveis; toda criação, alteração, exclusão e restauração fica registrada com autor, data e campos alterados.
@@ -49,9 +50,11 @@ Acesse `https://localhost:3000` (o modo dev usa HTTPS para liberar a câmera no 
 - `src/lib/photos.ts`: URLs assinadas, leitura do álbum e remoção de arquivos (servidor e cliente).
 - `src/lib/photo-upload.ts`: Compressão, miniaturas e gravação do álbum (cliente).
 - `src/lib/funcionarios.ts`: Listagem paginada (RPC `buscar_funcionarios`) e cidades para filtro.
-- `src/lib/format.ts`: Máscaras e validações (CPF, CEP) e normalização de texto para busca.
+- `src/lib/format.ts`: Máscaras e validações (CPF, CEP), datas e normalização de texto para busca.
+- `src/lib/abordagens.ts`: Formulário e gravação de abordagens.
 - `supabase/schema.sql` e `supabase/migrations/`: Esquema do banco, bucket, políticas RLS e funções de busca.
 
 ## ⚠️ Notas Importantes
+- **Serviços externos**: CEP pelo [ViaCEP](https://viacep.com.br); endereço aproximado da localização pelo [Nominatim/OpenStreetMap](https://nominatim.org) e mapas embutidos do OpenStreetMap — as coordenadas da abordagem são enviadas a esses serviços para gerar o endereço e o mapa.
 - **PWA**: O suporte a PWA está configurado no `next.config.ts` (desativado em desenvolvimento). Os arquivos do service worker são gerados em `public/` durante o build e não são versionados.
 - **Login**: Usuários são criados no painel do Supabase (Authentication → Users) e entram como **agentes**. A migração `0003` torna administrador o usuário mais antigo; depois disso, promova outros pela tela **Administração → Usuários** (o sistema impede ficar sem nenhum administrador).

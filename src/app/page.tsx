@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Plus, ShieldCheck } from 'lucide-react'
+import { Siren, ShieldCheck, UserPlus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import EmployeeList from '@/components/EmployeeList'
 import { redirect } from 'next/navigation'
@@ -43,10 +43,17 @@ export default async function Dashboard() {
                         )}
                         <Link
                             href="/funcionarios/adicionar"
+                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-surface border border-line-strong text-fg-soft hover:bg-surface-muted font-semibold rounded-xl transition-colors"
+                        >
+                            <UserPlus className="h-5 w-5" />
+                            Cadastrar pessoa
+                        </Link>
+                        <Link
+                            href="/abordagens/nova"
                             className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
                         >
-                            <Plus className="h-5 w-5" />
-                            Novo abordado
+                            <Siren className="h-5 w-5" />
+                            Nova abordagem
                         </Link>
                         <LogoutButton />
                     </div>
