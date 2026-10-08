@@ -4,19 +4,18 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { RotateCcw, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { removePhoto } from '@/lib/photos'
+import { removePhotos } from '@/lib/photos'
 import ConfirmDialog from '@/components/ConfirmDialog'
 import { useToast } from '@/components/Toast'
 
 interface TrashActionsProps {
     id: string
-    fotoUrl: string | null
     /** Para onde ir depois de apagar definitivamente (padrão: atualiza a página atual). */
     redirectAfterDelete?: string
 }
 
 /** Ações de admin para um registro na lixeira: restaurar ou apagar definitivamente. */
-export default function TrashActions({ id, fotoUrl, redirectAfterDelete }: TrashActionsProps) {
+export default function TrashActions({ id, redirectAfterDelete }: TrashActionsProps) {
     const router = useRouter()
     const showToast = useToast()
     const [busy, setBusy] = useState<'restore' | 'delete' | null>(null)
@@ -38,6 +37,13 @@ export default function TrashActions({ id, fotoUrl, redirectAfterDelete }: Trash
     const deleteForever = async () => {
         setBusy('delete')
         const supabase = createClient()
+        // Arquivos do álbum (e a foto antiga, se houver) para apagar do storage depois
+        const [{ data: fotos }, { data: funcionario }] = await Promise.all([
+            supabase.from('fotos').select('caminho, miniatura').eq('funcionario_id', id),
+            supabase.from('funcionarios').select('foto_url').eq('id', id).maybeSingle(),
+        ])
+        const arquivos = [...(fotos ?? []).flatMap((f) => [f.caminho, f.miniatura]), funcionario?.foto_url]
+
         const { error } = await supabase.from('funcionarios').delete().eq('id', id)
         if (error) {
             console.error(error)
@@ -46,7 +52,7 @@ export default function TrashActions({ id, fotoUrl, redirectAfterDelete }: Trash
             setConfirmOpen(false)
             return
         }
-        await removePhoto(supabase, fotoUrl)
+        await removePhotos(supabase, [...new Set(arquivos)])
         showToast('Cadastro apagado definitivamente')
         setConfirmOpen(false)
         setBusy(null)
@@ -78,7 +84,7 @@ export default function TrashActions({ id, fotoUrl, redirectAfterDelete }: Trash
             <ConfirmDialog
                 open={confirmOpen}
                 title="Apagar definitivamente?"
-                description="O cadastro e a foto serão removidos para sempre. Esta ação não pode ser desfeita."
+                description="O cadastro e todas as fotos serão removidos para sempre. Esta ação não pode ser desfeita."
                 confirmLabel="Apagar"
                 destructive
                 loading={busy === 'delete'}

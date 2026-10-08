@@ -6,11 +6,11 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { createClient } from '@/lib/supabase/client'
-import CameraInput from '@/components/CameraInput'
+import PhotoManager from '@/components/PhotoManager'
 import { Loader2, Save } from 'lucide-react'
-import { Funcionario } from '@/types'
+import type { Funcionario, FotoView } from '@/types'
 import { formatCep, formatCpf, isValidCpf, onlyDigits } from '@/lib/format'
-import { PHOTO_BUCKET, removePhoto } from '@/lib/photos'
+import { draftsIniciais, salvarFotos, type PhotoDraft } from '@/lib/photo-upload'
 import { useToast } from '@/components/Toast'
 
 const schema = z.object({
@@ -34,19 +34,15 @@ type FormData = z.infer<typeof schema>
 
 interface EmployeeFormProps {
     initialData?: Funcionario
-    /** URL (assinada) para exibir a foto atual ao editar. */
-    initialPhotoSrc?: string | null
+    /** Álbum atual (com URLs assinadas) ao editar. */
+    initialFotos?: FotoView[]
+    /** Cadastro antigo sem álbum: URL assinada da foto única. */
+    legacyPhotoSrc?: string | null
 }
 
-function photoExtension(file: File) {
-    const subtype = file.type.split('/')[1]
-    if (!subtype) return 'jpg'
-    return subtype === 'jpeg' ? 'jpg' : subtype
-}
-
-export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeFormProps) {
-    const [photo, setPhoto] = useState<File | null>(null)
-    const [photoRemoved, setPhotoRemoved] = useState(false)
+export default function EmployeeForm({ initialData, initialFotos = [], legacyPhotoSrc }: EmployeeFormProps) {
+    const [fotosIniciais] = useState(() => draftsIniciais(initialFotos, initialData?.foto_url, legacyPhotoSrc))
+    const [fotos, setFotos] = useState<PhotoDraft[]>(fotosIniciais)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [loadingCep, setLoadingCep] = useState(false)
     const [cepMessage, setCepMessage] = useState<string | null>(null)
@@ -78,11 +74,6 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
         resolver: zodResolver(schema),
         defaultValues
     })
-
-    const handlePhotoSelected = (file: File | null) => {
-        setPhoto(file)
-        setPhotoRemoved(file === null)
-    }
 
     const lookupCep = async (cep: string) => {
         if (cep.length !== 8 || cep === lastCepLookup.current) return
@@ -119,24 +110,9 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
         setIsSubmitting(true)
         setErrorHeader(null)
 
-        const previousFoto = initialData?.foto_url ?? null
-        let foto_url = photoRemoved ? null : previousFoto
-        let uploadedPath: string | null = null
-
+        let funcionarioId = initialData?.id ?? null
+        let etapa: 'dados' | 'fotos' = 'dados'
         try {
-            if (photo) {
-                const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${photoExtension(photo)}`
-                const { error: uploadError } = await supabase.storage
-                    .from(PHOTO_BUCKET)
-                    .upload(fileName, photo, { contentType: photo.type || 'image/jpeg' })
-
-                if (uploadError) throw uploadError
-
-                // O bucket é privado: guardamos o caminho e geramos URLs assinadas na leitura
-                uploadedPath = fileName
-                foto_url = fileName
-            }
-
             const row = {
                 ...data,
                 apelido: data.apelido || null,
@@ -145,37 +121,50 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
                 complemento: data.complemento || null,
                 cpf: formatCpf(data.cpf),
                 cep: formatCep(data.cep),
-                foto_url,
             }
 
-            if (initialData?.id) {
+            if (funcionarioId) {
                 const { error: updateError } = await supabase
                     .from('funcionarios')
                     .update(row)
-                    .eq('id', initialData.id)
+                    .eq('id', funcionarioId)
 
                 if (updateError) throw updateError
             } else {
-                const { error: insertError } = await supabase
+                const { data: criado, error: insertError } = await supabase
                     .from('funcionarios')
                     .insert(row)
+                    .select('id')
+                    .single()
 
                 if (insertError) throw insertError
+                funcionarioId = criado.id as string
             }
 
-            if (previousFoto && previousFoto !== foto_url) {
-                await removePhoto(supabase, previousFoto)
-            }
+            // As fotos vão depois do cadastro: erros de validação (ex.: CPF repetido) não enviam arquivos à toa
+            etapa = 'fotos'
+            await salvarFotos(supabase, funcionarioId, fotos, fotosIniciais)
 
             showToast(initialData?.id ? 'Alterações salvas' : 'Abordado cadastrado')
             router.push(initialData?.id ? `/funcionarios/${initialData.id}` : '/')
             router.refresh()
         } catch (err) {
             console.error(err)
-            if (uploadedPath) await removePhoto(supabase, uploadedPath)
-
             const { code, message } = err as { code?: string; message?: string }
-            setErrorHeader(code === '23505' ? 'Este CPF já está cadastrado (o cadastro pode estar na lixeira).' : message || 'Erro ao salvar')
+
+            if (etapa === 'fotos' && funcionarioId) {
+                // Os dados foram salvos; recarrega a edição com o álbum como ficou no banco
+                // (a página de edição remonta o formulário quando o álbum muda)
+                showToast('Dados salvos, mas houve erro ao salvar as fotos. Revise o álbum.', 'error')
+                router.push(`/funcionarios/${funcionarioId}/editar`)
+                router.refresh()
+                setIsSubmitting(false)
+                return
+            }
+
+            setErrorHeader(code === '23505'
+                ? 'Este CPF já está cadastrado (o cadastro pode estar na lixeira).'
+                : message || 'Erro ao salvar')
             window.scrollTo({ top: 0, behavior: 'smooth' })
             setIsSubmitting(false)
         }
@@ -192,11 +181,15 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
 
                 <section className="space-y-4">
+                    <h2 className="text-sm font-bold text-fg uppercase tracking-wider">Fotos</h2>
+                    <div className="bg-surface p-4 rounded-2xl shadow-sm border border-line">
+                        <PhotoManager value={fotos} onChange={setFotos} />
+                    </div>
+                </section>
+
+                <section className="space-y-4">
                     <h2 className="text-sm font-bold text-fg uppercase tracking-wider">Dados Pessoais</h2>
                     <div className="bg-surface p-4 rounded-2xl shadow-sm border border-line space-y-4">
-                        <div className="flex justify-center mb-6">
-                            <CameraInput onImageSelected={handlePhotoSelected} initialPreview={initialPhotoSrc || undefined} />
-                        </div>
 
                         <div className="grid grid-cols-1 gap-4">
                             <Field id="nome_completo" label="Nome Completo *" error={errors.nome_completo?.message}>

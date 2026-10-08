@@ -28,11 +28,13 @@ export async function listarFuncionarios(
     if (error) throw new Error(`Erro ao buscar abordados: ${error.message}`)
 
     const rows = (data ?? []) as unknown as Omit<FuncionarioListItem, 'foto_src'>[]
-    const signedUrls = await getSignedPhotoUrls(supabase, rows.map((f) => f.foto_url))
+    // Miniatura da capa quando existir (arquivo bem menor que a foto inteira)
+    const capa = (f: (typeof rows)[number]) => f.foto_miniatura || f.foto_url
+    const signedUrls = await getSignedPhotoUrls(supabase, rows.map(capa))
 
     return {
         items: rows.map((f) => {
-            const path = getPhotoPath(f.foto_url)
+            const path = getPhotoPath(capa(f))
             return { ...f, foto_src: path ? signedUrls[path] ?? null : null }
         }),
         total: count ?? rows.length,

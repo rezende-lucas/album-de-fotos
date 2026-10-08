@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import EmployeeForm from '@/components/EmployeeForm'
-import { getSignedPhotoUrl } from '@/lib/photos'
+import { getFotosComUrls, getSignedPhotoUrl } from '@/lib/photos'
 import type { Funcionario } from '@/types'
 
 export default async function EditEmployeePage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,7 +21,11 @@ export default async function EditEmployeePage({ params }: { params: Promise<{ i
     }
 
     const funcionario = data as Funcionario
-    const fotoSrc = await getSignedPhotoUrl(supabase, funcionario.foto_url)
+    const fotos = await getFotosComUrls(supabase, funcionario.id)
+    // Cadastro antigo ainda sem álbum (foto única em foto_url)
+    const legacyPhotoSrc = fotos.length === 0 ? await getSignedPhotoUrl(supabase, funcionario.foto_url) : null
+    // Remonta o formulário quando o álbum muda (ex.: depois de um envio de fotos com erro)
+    const formKey = fotos.map((f) => `${f.id}:${f.principal}:${f.tipo}`).join('|') || funcionario.foto_url || 'vazio'
 
     return (
         <div className="min-h-screen bg-page pb-safe">
@@ -33,7 +37,7 @@ export default async function EditEmployeePage({ params }: { params: Promise<{ i
             </header>
 
             <main className="p-4 max-w-2xl mx-auto">
-                <EmployeeForm initialData={funcionario} initialPhotoSrc={fotoSrc} />
+                <EmployeeForm key={formKey} initialData={funcionario} initialFotos={fotos} legacyPhotoSrc={legacyPhotoSrc} />
             </main>
         </div>
     )

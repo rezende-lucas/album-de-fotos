@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getNomesUsuarios } from '@/lib/auth'
 import { formatDateTime } from '@/lib/format'
-import type { AcaoAuditoria, AuditoriaItem } from '@/types'
+import { TIPOS_FOTO, type AcaoAuditoria, type AuditoriaItem, type TipoFoto } from '@/types'
 
 const POR_PAGINA = 50
 
@@ -14,7 +14,17 @@ const ACOES: Record<AcaoAuditoria, { label: string, className: string }> = {
     apagado: { label: 'Apagou definitivamente', className: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300' },
 }
 
+// Fotos são registradas no cadastro da pessoa
+const ACOES_FOTO: Partial<Record<AcaoAuditoria, string>> = {
+    criado: 'Adicionou foto',
+    alterado: 'Alterou foto',
+    apagado: 'Removeu foto',
+}
+
+const CAMPOS_FOTO = ['tipo', 'legenda', 'principal']
+
 const CAMPOS: Record<string, string> = {
+    tipo: 'Tipo', legenda: 'Legenda', principal: 'Principal',
     nome_completo: 'Nome', apelido: 'Apelido', cpf: 'CPF', rg: 'RG', nome_mae: 'Mãe', nome_pai: 'Pai',
     filiacao: 'Filiação', cep: 'CEP', logradouro: 'Rua', numero: 'Número', complemento: 'Complemento',
     bairro: 'Bairro', cidade: 'Cidade', estado: 'UF', endereco: 'Endereço', foto_url: 'Foto', deleted_at: 'Lixeira',
@@ -24,6 +34,8 @@ function valor(campo: string, v: unknown): string {
     if (v === null || v === undefined || v === '') return '—'
     if (campo === 'foto_url') return 'foto'
     if (campo === 'deleted_at') return formatDateTime(String(v))
+    if (campo === 'principal') return v ? 'sim' : 'não'
+    if (campo === 'tipo') return TIPOS_FOTO[v as TipoFoto] ?? String(v)
     return String(v)
 }
 
@@ -55,17 +67,22 @@ export default async function AuditoriaPage({ searchParams }: { searchParams: Pr
 
             <ol className="space-y-3">
                 {itens.map((item) => {
-                    const acao = ACOES[item.acao]
+                    const ehFoto = item.tabela === 'fotos'
+                    const acao = { ...ACOES[item.acao], label: (ehFoto && ACOES_FOTO[item.acao]) || ACOES[item.acao].label }
                     const nomeRegistro = String(item.depois?.nome_completo ?? item.antes?.nome_completo ?? 'Registro')
                     const campos = item.acao === 'alterado'
-                        ? Object.keys(item.depois ?? {}).filter((c) => c !== 'nome_completo' || item.antes?.nome_completo !== item.depois?.nome_completo)
+                        ? Object.keys(item.depois ?? {}).filter((c) => (ehFoto
+                            ? CAMPOS_FOTO.includes(c)
+                            : c !== 'nome_completo' || item.antes?.nome_completo !== item.depois?.nome_completo))
                         : []
+                    // Foto adicionada/removida: mostra tipo e legenda
+                    const detalhesFoto = ehFoto && item.acao !== 'alterado' ? (item.depois ?? item.antes) : null
 
                     return (
                         <li key={item.id} className="bg-surface border border-line rounded-2xl p-4 space-y-2">
                             <div className="flex flex-wrap items-center gap-2 text-sm">
                                 <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${acao.className}`}>{acao.label}</span>
-                                {item.acao === 'apagado' || !item.registro_id ? (
+                                {(item.acao === 'apagado' && !ehFoto) || !item.registro_id ? (
                                     <span className="font-semibold text-fg">{nomeRegistro}</span>
                                 ) : (
                                     <Link href={`/funcionarios/${item.registro_id}`} className="font-semibold text-fg hover:underline">
@@ -76,6 +93,12 @@ export default async function AuditoriaPage({ searchParams }: { searchParams: Pr
                             <p className="text-xs text-fg-subtle">
                                 {formatDateTime(item.criado_em)} · {(item.usuario_id && nomes[item.usuario_id]) || 'Sistema'}
                             </p>
+                            {detalhesFoto && (
+                                <p className="text-sm text-fg-soft">
+                                    {valor('tipo', detalhesFoto.tipo)}
+                                    {typeof detalhesFoto.legenda === 'string' && detalhesFoto.legenda && <> — {detalhesFoto.legenda}</>}
+                                </p>
+                            )}
                             {campos.length > 0 && (
                                 <dl className="text-sm grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 pt-1">
                                     {campos.map((campo) => (

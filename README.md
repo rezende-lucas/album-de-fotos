@@ -19,7 +19,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_anon_key
    1. [`supabase/schema.sql`](supabase/schema.sql) — tabela `funcionarios`, bucket **privado** `fotos-funcionarios` e políticas de segurança (RLS).
    2. Cada arquivo de [`supabase/migrations/`](supabase/migrations) em ordem numérica (`0002_…`, `0003_…`).
 
-   Todos os scripts são idempotentes (podem ser rodados novamente). Em projetos existentes, rode apenas as migrações novas de cada atualização. Registros antigos continuam funcionando — o app converte a URL pública de fotos antigas no caminho do arquivo.
+   Todos os scripts são idempotentes (podem ser rodados novamente). **Cole o arquivo inteiro e rode sem nenhum trecho selecionado** — com uma seleção ativa, o SQL Editor executa só a parte selecionada. Em projetos existentes, rode apenas as migrações novas de cada atualização. Registros antigos continuam funcionando — o app converte a URL pública de fotos antigas no caminho do arquivo.
 
 ### 3. Instalação e Execução
 Instale as dependências e inicie o servidor:
@@ -35,17 +35,19 @@ Acesse `https://localhost:3000` (o modo dev usa HTTPS para liberar a câmera no 
 - **Login Seguro**: Acesso restrito via Supabase Auth; todas as rotas são protegidas pelo `src/proxy.ts`.
 - **Dashboard**: Lista paginada (rolagem infinita) com busca no banco sem acentos por nome, apelido, filiação, endereço, CPF ou RG (com ou sem pontuação) e filtro por cidade.
 - **Interface**: Modo escuro automático (segue o sistema), layout adaptado para computador, avisos de confirmação e diálogos próprios.
-- **Cadastro**: Formulário otimizado para mobile com captura de câmera, compressão automática de imagem, validação de CPF (dígitos verificadores) e preenchimento de endereço pelo CEP (ViaCEP).
+- **Cadastro**: Formulário otimizado para mobile, validação de CPF (dígitos verificadores) e preenchimento de endereço pelo CEP (ViaCEP).
+- **Álbum de fotos**: Até 20 fotos por pessoa (rosto, perfil, corpo, tatuagem/sinal, documento…) com legenda e foto principal (★). As fotos são comprimidas no próprio aparelho e ganham uma miniatura leve para a lista e a galeria. Na ficha, a galeria abre em tela cheia com setas, deslizar e Esc.
 - **Perfis de acesso**: **Agentes** cadastram e editam; **Administradores** também excluem (lixeira), restauram, apagam definitivamente, consultam a auditoria e definem o papel dos usuários (ícone de escudo na tela inicial → Administração).
 - **Lixeira e auditoria**: Exclusões são reversíveis; toda criação, alteração, exclusão e restauração fica registrada com autor, data e campos alterados.
-- **Fotos privadas**: As fotos ficam em bucket privado e são exibidas por URLs assinadas temporárias (1 hora). Fotos substituídas ou de registros excluídos são removidas do storage.
+- **Fotos privadas**: As fotos ficam em bucket privado e são exibidas por URLs assinadas temporárias (1 hora). Fotos removidas do álbum ou de cadastros apagados definitivamente são removidas do storage.
 - **PWA**: Instalável no celular (Adicionar à Tela Inicial).
 
 ## 🛠️ Estrutura do Projeto
 - `src/app`: Páginas e Rotas (App Router), incluindo telas de carregamento, erro e "não encontrado"; `actions.ts` com as Server Actions.
 - `src/components`: Componentes Reutilizáveis (EmployeeCard, EmployeeForm, CameraInput...).
 - `src/lib/supabase`: Clientes Supabase (Client, Server, Middleware/Proxy).
-- `src/lib/photos.ts`: Upload/remoção de fotos e geração de URLs assinadas.
+- `src/lib/photos.ts`: URLs assinadas, leitura do álbum e remoção de arquivos (servidor e cliente).
+- `src/lib/photo-upload.ts`: Compressão, miniaturas e gravação do álbum (cliente).
 - `src/lib/funcionarios.ts`: Listagem paginada (RPC `buscar_funcionarios`) e cidades para filtro.
 - `src/lib/format.ts`: Máscaras e validações (CPF, CEP) e normalização de texto para busca.
 - `supabase/schema.sql` e `supabase/migrations/`: Esquema do banco, bucket, políticas RLS e funções de busca.

@@ -8,6 +8,7 @@ export interface Funcionario {
     cpf: string
     rg: string | null
     foto_url: string | null
+    foto_miniatura?: string | null
     nome_mae?: string
     nome_pai?: string
     logradouro?: string
@@ -22,6 +23,34 @@ export interface Funcionario {
     updated_by?: string | null
     deleted_at?: string | null
     deleted_by?: string | null
+}
+
+export const TIPOS_FOTO = {
+    rosto: 'Rosto',
+    perfil: 'Perfil',
+    corpo: 'Corpo inteiro',
+    tatuagem: 'Tatuagem / sinal',
+    documento: 'Documento',
+    outro: 'Outro',
+} as const
+
+export type TipoFoto = keyof typeof TIPOS_FOTO
+
+export interface Foto {
+    id: string
+    funcionario_id: string
+    caminho: string
+    miniatura: string | null
+    tipo: TipoFoto
+    legenda: string | null
+    principal: boolean
+    ordem: number
+}
+
+/** Foto pronta para exibição (URLs assinadas). */
+export interface FotoView extends Foto {
+    src: string | null
+    thumbSrc: string | null
 }
 
 export type Papel = 'admin' | 'agente'
@@ -48,12 +77,12 @@ export interface AuditoriaItem {
 
 /** Colunas carregadas na listagem (dashboard). */
 export const FUNCIONARIO_LIST_COLUMNS =
-    'id, nome_completo, apelido, cpf, rg, nome_mae, nome_pai, logradouro, bairro, cidade, estado, endereco, foto_url'
+    'id, nome_completo, apelido, cpf, rg, nome_mae, nome_pai, logradouro, bairro, cidade, estado, endereco, foto_url, foto_miniatura'
 
 export type FuncionarioListItem = Pick<
     Funcionario,
     | 'id' | 'nome_completo' | 'apelido' | 'cpf' | 'rg' | 'nome_mae' | 'nome_pai'
-    | 'logradouro' | 'bairro' | 'cidade' | 'estado' | 'endereco' | 'foto_url'
+    | 'logradouro' | 'bairro' | 'cidade' | 'estado' | 'endereco' | 'foto_url' | 'foto_miniatura'
 > & {
     /** URL assinada da foto, pronta para exibição. */
     foto_src: string | null

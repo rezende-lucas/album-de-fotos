@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { Foto, FotoView } from '@/types'
 
 export const PHOTO_BUCKET = 'fotos-funcionarios'
 
@@ -52,10 +53,37 @@ export async function getSignedPhotoUrl(
     return urls[path] ?? null
 }
 
-/** Remove a foto do storage. Falhas são apenas registradas (não bloqueiam o fluxo). */
+/** Remove arquivos do storage. Falhas são apenas registradas (não bloqueiam o fluxo). */
+export async function removePhotos(supabase: SupabaseClient, fotoUrls: (string | null | undefined)[]) {
+    const paths = fotoUrls.map(getPhotoPath).filter((p): p is string => !!p)
+    if (paths.length === 0) return
+    const { error } = await supabase.storage.from(PHOTO_BUCKET).remove(paths)
+    if (error) console.error('Erro ao remover fotos do storage:', error)
+}
+
 export async function removePhoto(supabase: SupabaseClient, fotoUrl: string | null | undefined) {
-    const path = getPhotoPath(fotoUrl)
-    if (!path) return
-    const { error } = await supabase.storage.from(PHOTO_BUCKET).remove([path])
-    if (error) console.error('Erro ao remover foto antiga:', error)
+    await removePhotos(supabase, [fotoUrl])
+}
+
+/** Fotos de um cadastro (principal primeiro) com URLs assinadas da foto e da miniatura. */
+export async function getFotosComUrls(supabase: SupabaseClient, funcionarioId: string): Promise<FotoView[]> {
+    const { data, error } = await supabase
+        .from('fotos')
+        .select('id, funcionario_id, caminho, miniatura, tipo, legenda, principal, ordem')
+        .eq('funcionario_id', funcionarioId)
+        .order('principal', { ascending: false })
+        .order('ordem')
+        .order('created_at')
+
+    if (error) {
+        console.error('Erro ao carregar fotos:', error)
+        return []
+    }
+
+    const fotos = (data ?? []) as Foto[]
+    const urls = await getSignedPhotoUrls(supabase, fotos.flatMap((f) => [f.caminho, f.miniatura]))
+    return fotos.map((f) => {
+        const src = urls[getPhotoPath(f.caminho) ?? ''] ?? null
+        return { ...f, src, thumbSrc: urls[getPhotoPath(f.miniatura) ?? ''] ?? src }
+    })
 }

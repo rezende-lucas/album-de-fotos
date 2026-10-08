@@ -6,13 +6,13 @@ import { formatCpf, formatDate } from '@/lib/format'
 import TrashActions from '@/components/TrashActions'
 import type { Funcionario } from '@/types'
 
-type ItemLixeira = Pick<Funcionario, 'id' | 'nome_completo' | 'apelido' | 'cpf' | 'foto_url' | 'deleted_at' | 'deleted_by'>
+type ItemLixeira = Pick<Funcionario, 'id' | 'nome_completo' | 'apelido' | 'cpf' | 'deleted_at' | 'deleted_by'>
 
 export default async function LixeiraPage() {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from('funcionarios')
-        .select('id, nome_completo, apelido, cpf, foto_url, deleted_at, deleted_by')
+        .select('id, nome_completo, apelido, cpf, deleted_at, deleted_by')
         .not('deleted_at', 'is', null)
         .order('deleted_at', { ascending: false })
         .limit(200)
@@ -48,7 +48,7 @@ export default async function LixeiraPage() {
                             {item.deleted_by && nomes[item.deleted_by] && <> por {nomes[item.deleted_by]}</>}
                         </p>
                     </div>
-                    <TrashActions id={item.id} fotoUrl={item.foto_url} />
+                    <TrashActions id={item.id} />
                 </div>
             ))}
         </div>
