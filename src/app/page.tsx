@@ -1,16 +1,17 @@
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { Plus, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import EmployeeList from '@/components/EmployeeList'
 import { redirect } from 'next/navigation'
 import LogoutButton from '@/components/LogoutButton'
 import { listarCidades, listarFuncionarios } from '@/lib/funcionarios'
+import { getPerfil } from '@/lib/auth'
 
 export default async function Dashboard() {
     const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
+    const perfil = await getPerfil()
+    if (!perfil) {
         redirect('/login')
     }
 
@@ -30,6 +31,16 @@ export default async function Dashboard() {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
+                        {perfil.papel === 'admin' && (
+                            <Link
+                                href="/admin"
+                                aria-label="Administração"
+                                title="Administração"
+                                className="p-2 text-fg-muted hover:text-blue-600 hover:bg-surface-muted rounded-full transition-colors"
+                            >
+                                <ShieldCheck className="h-6 w-6" />
+                            </Link>
+                        )}
                         <Link
                             href="/funcionarios/adicionar"
                             className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"

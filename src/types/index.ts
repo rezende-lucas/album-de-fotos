@@ -18,6 +18,32 @@ export interface Funcionario {
     estado?: string
     cep?: string
     user_id?: string
+    updated_at?: string | null
+    updated_by?: string | null
+    deleted_at?: string | null
+    deleted_by?: string | null
+}
+
+export type Papel = 'admin' | 'agente'
+
+export interface Perfil {
+    user_id: string
+    nome: string | null
+    email: string | null
+    papel: Papel
+}
+
+export type AcaoAuditoria = 'criado' | 'alterado' | 'excluido' | 'restaurado' | 'apagado'
+
+export interface AuditoriaItem {
+    id: number
+    tabela: string
+    registro_id: string | null
+    acao: AcaoAuditoria
+    usuario_id: string | null
+    antes: Record<string, unknown> | null
+    depois: Record<string, unknown> | null
+    criado_em: string
 }
 
 /** Colunas carregadas na listagem (dashboard). */

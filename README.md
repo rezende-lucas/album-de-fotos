@@ -36,6 +36,8 @@ Acesse `https://localhost:3000` (o modo dev usa HTTPS para liberar a câmera no 
 - **Dashboard**: Lista paginada (rolagem infinita) com busca no banco sem acentos por nome, apelido, filiação, endereço, CPF ou RG (com ou sem pontuação) e filtro por cidade.
 - **Interface**: Modo escuro automático (segue o sistema), layout adaptado para computador, avisos de confirmação e diálogos próprios.
 - **Cadastro**: Formulário otimizado para mobile com captura de câmera, compressão automática de imagem, validação de CPF (dígitos verificadores) e preenchimento de endereço pelo CEP (ViaCEP).
+- **Perfis de acesso**: **Agentes** cadastram e editam; **Administradores** também excluem (lixeira), restauram, apagam definitivamente, consultam a auditoria e definem o papel dos usuários (ícone de escudo na tela inicial → Administração).
+- **Lixeira e auditoria**: Exclusões são reversíveis; toda criação, alteração, exclusão e restauração fica registrada com autor, data e campos alterados.
 - **Fotos privadas**: As fotos ficam em bucket privado e são exibidas por URLs assinadas temporárias (1 hora). Fotos substituídas ou de registros excluídos são removidas do storage.
 - **PWA**: Instalável no celular (Adicionar à Tela Inicial).
 
@@ -50,4 +52,4 @@ Acesse `https://localhost:3000` (o modo dev usa HTTPS para liberar a câmera no 
 
 ## ⚠️ Notas Importantes
 - **PWA**: O suporte a PWA está configurado no `next.config.ts` (desativado em desenvolvimento). Os arquivos do service worker são gerados em `public/` durante o build e não são versionados.
-- **Login**: O primeiro usuário deve ser criado via painel do Supabase (Auth > Users) ou SignUp habilitado temporariamente. O sistema assume login existente.
+- **Login**: Usuários são criados no painel do Supabase (Authentication → Users) e entram como **agentes**. A migração `0003` torna administrador o usuário mais antigo; depois disso, promova outros pela tela **Administração → Usuários** (o sistema impede ficar sem nenhum administrador).
