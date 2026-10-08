@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Camera, Loader2, Star, Trash2 } from 'lucide-react'
+import { Camera, ImagePlus, Loader2, Star, Trash2 } from 'lucide-react'
 import { MAX_FOTOS, prepararFoto, type PhotoDraft } from '@/lib/photo-upload'
 import { TIPOS_FOTO, type TipoFoto } from '@/types'
 
@@ -17,7 +17,10 @@ interface PhotoManagerProps {
 export default function PhotoManager({ value, onChange, semPrincipal = false }: PhotoManagerProps) {
     const [processando, setProcessando] = useState(0)
     const [erro, setErro] = useState<string | null>(null)
-    const inputRef = useRef<HTMLInputElement>(null)
+    // Dois seletores: no Android, `multiple` faz o Chrome esconder a opção de câmera,
+    // então a câmera tem um input próprio (capture) e a galeria aceita várias fotos.
+    const cameraRef = useRef<HTMLInputElement>(null)
+    const galeriaRef = useRef<HTMLInputElement>(null)
     const latest = useRef(value)
     latest.current = value
 
@@ -141,20 +144,33 @@ export default function PhotoManager({ value, onChange, semPrincipal = false }: 
                 ))}
 
                 {podeAdicionar && (
-                    <button
-                        type="button"
-                        onClick={() => inputRef.current?.click()}
-                        className="aspect-square rounded-xl border-2 border-dashed border-line-strong bg-surface-muted hover:border-blue-500 flex flex-col items-center justify-center gap-2 text-fg-muted transition-colors"
-                    >
-                        <span className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300 flex items-center justify-center">
-                            <Camera className="h-6 w-6" />
-                        </span>
-                        <span className="text-sm font-medium text-fg">{value.length === 0 ? 'Tirar foto / Upload' : 'Adicionar foto'}</span>
-                    </button>
+                    <div className="aspect-square rounded-xl border-2 border-dashed border-line-strong bg-surface-muted grid grid-rows-2 overflow-hidden">
+                        <button
+                            type="button"
+                            onClick={() => cameraRef.current?.click()}
+                            className="flex flex-col items-center justify-center gap-1 text-fg hover:bg-line transition-colors"
+                        >
+                            <span className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300 flex items-center justify-center">
+                                <Camera className="h-5 w-5" />
+                            </span>
+                            <span className="text-sm font-medium">Câmera</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => galeriaRef.current?.click()}
+                            className="flex flex-col items-center justify-center gap-1 text-fg border-t border-dashed border-line-strong hover:bg-line transition-colors"
+                        >
+                            <span className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-300 flex items-center justify-center">
+                                <ImagePlus className="h-5 w-5" />
+                            </span>
+                            <span className="text-sm font-medium">Galeria</span>
+                        </button>
+                    </div>
                 )}
             </div>
 
-            <input ref={inputRef} type="file" accept="image/*" multiple onChange={adicionar} className="hidden" />
+            <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={adicionar} className="hidden" aria-hidden="true" tabIndex={-1} />
+            <input ref={galeriaRef} type="file" accept="image/*" multiple onChange={adicionar} className="hidden" aria-hidden="true" tabIndex={-1} />
 
             <p className="text-xs text-fg-subtle">
                 {semPrincipal
