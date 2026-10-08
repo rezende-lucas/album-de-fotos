@@ -5,9 +5,9 @@ import EmployeeImageHeader from '@/components/EmployeeImageHeader'
 import EmployeeActions from '@/components/EmployeeActions'
 import TrashActions from '@/components/TrashActions'
 import { getNomesUsuarios, getPerfil } from '@/lib/auth'
-import { getSignedPhotoUrl } from '@/lib/photos'
+import { getFotosComUrls, getSignedPhotoUrl } from '@/lib/photos'
 import { formatCep, formatCpf, formatDate } from '@/lib/format'
-import type { Funcionario } from '@/types'
+import type { Funcionario, FotoView } from '@/types'
 
 export default async function EmployeeDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const supabase = await createClient()
@@ -24,19 +24,29 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
     }
 
     const funcionario = data as Funcionario
-    const [fotoSrc, perfil, nomes] = await Promise.all([
-        getSignedPhotoUrl(supabase, funcionario.foto_url),
+    const [fotos, perfil, nomes] = await Promise.all([
+        getFotosComUrls(supabase, funcionario.id),
         getPerfil(),
         getNomesUsuarios([funcionario.user_id, funcionario.updated_by, funcionario.deleted_by]),
     ])
     const isAdmin = perfil?.papel === 'admin'
     const nomeDe = (userId?: string | null) => (userId && nomes[userId]) || null
 
+    // Cadastro antigo ainda sem álbum: mostra a foto única
+    let galeria: FotoView[] = fotos
+    if (fotos.length === 0 && funcionario.foto_url) {
+        const src = await getSignedPhotoUrl(supabase, funcionario.foto_url)
+        galeria = [{
+            id: 'legado', funcionario_id: funcionario.id, caminho: funcionario.foto_url, miniatura: null,
+            tipo: 'rosto', legenda: null, principal: true, ordem: 0, src, thumbSrc: src,
+        }]
+    }
+
     return (
         <div className="min-h-screen bg-page pb-safe lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:items-start lg:max-w-6xl lg:mx-auto lg:p-6">
             {/* Header Image */}
             <EmployeeImageHeader
-                fotoUrl={fotoSrc}
+                fotos={galeria}
                 nomeCompleto={funcionario.nome_completo}
                 apelido={funcionario.apelido}
             />
@@ -51,7 +61,7 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
                                 {nomeDe(funcionario.deleted_by) && <> (excluído por {nomeDe(funcionario.deleted_by)})</>}.
                             </span>
                         </p>
-                        <TrashActions id={funcionario.id} fotoUrl={funcionario.foto_url} redirectAfterDelete="/admin/lixeira" />
+                        <TrashActions id={funcionario.id} redirectAfterDelete="/admin/lixeira" />
                     </div>
                 )}
 
