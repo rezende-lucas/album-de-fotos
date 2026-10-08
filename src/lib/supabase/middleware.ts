@@ -28,21 +28,34 @@ export async function updateSession(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     const { pathname } = request.nextUrl
-    const isPublicRoute = pathname.startsWith('/login') || pathname.startsWith('/auth')
-
-    if (!user && !isPublicRoute) {
+    const redirect = (to: string) => {
         const url = request.nextUrl.clone()
-        url.pathname = '/login'
+        url.pathname = to
         url.search = ''
         return NextResponse.redirect(url)
     }
 
-    if (user && pathname.startsWith('/login')) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/'
-        url.search = ''
-        return NextResponse.redirect(url)
+    const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/cadastro')
+    const isPublicRoute = isAuthRoute || pathname.startsWith('/auth')
+
+    if (!user) {
+        return isPublicRoute ? response : redirect('/login')
     }
+    if (pathname.startsWith('/auth')) return response
+
+    // Conta ainda não aprovada (ou bloqueada) só vê a tela de espera.
+    // O banco também bloqueia os dados (RLS); aqui é só a navegação.
+    const { data: perfil, error } = await supabase
+        .from('perfis')
+        .select('status')
+        .eq('user_id', user.id)
+        .maybeSingle()
+    // Sem a migração 0006 a coluna não existe: não bloqueia ninguém
+    const ativo = error ? true : perfil?.status === 'ativo'
+    const naEspera = pathname.startsWith('/aguardando')
+
+    if (!ativo) return naEspera ? response : redirect('/aguardando')
+    if (isAuthRoute || naEspera) return redirect('/')
 
     return response
 }

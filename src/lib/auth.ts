@@ -10,7 +10,7 @@ export const getPerfil = cache(async (): Promise<Perfil | null> => {
 
     const { data } = await supabase
         .from('perfis')
-        .select('user_id, nome, email, papel')
+        .select('*')
         .eq('user_id', user.id)
         .maybeSingle()
 

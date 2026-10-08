@@ -33,6 +33,7 @@ Acesse `https://localhost:3000` (o modo dev usa HTTPS para liberar a câmera no 
 
 ## 📱 Funcionalidades
 - **Login Seguro**: Acesso restrito via Supabase Auth; todas as rotas são protegidas pelo `src/proxy.ts`.
+- **Cadastro de usuários**: Em `/cadastro` (link "Cadastre-se" no login) o agente informa nome, CPF, matrícula, foto da funcional, e-mail e senha. A conta fica **pendente** até um administrador conferir a funcional e aprovar em **Administração → Usuários** (o escudo da tela inicial mostra quantos pedidos aguardam). Enquanto pendente, recusada ou bloqueada, a pessoa só vê a tela de espera — e o banco não libera nenhum dado.
 - **Dashboard**: Lista paginada (rolagem infinita) com busca no banco sem acentos por nome, apelido, filiação, endereço, CPF ou RG (com ou sem pontuação) e filtro por cidade.
 - **Interface**: Modo escuro automático (segue o sistema), layout adaptado para computador, avisos de confirmação e diálogos próprios.
 - **Cadastro**: Formulário otimizado para mobile, validação de CPF (dígitos verificadores) e preenchimento de endereço pelo CEP (ViaCEP).
@@ -57,4 +58,6 @@ Acesse `https://localhost:3000` (o modo dev usa HTTPS para liberar a câmera no 
 ## ⚠️ Notas Importantes
 - **Serviços externos**: CEP pelo [ViaCEP](https://viacep.com.br); endereço aproximado da localização pelo [Nominatim/OpenStreetMap](https://nominatim.org) e mapas embutidos do OpenStreetMap — as coordenadas da abordagem são enviadas a esses serviços para gerar o endereço e o mapa.
 - **PWA**: O suporte a PWA está configurado no `next.config.ts` (desativado em desenvolvimento). Os arquivos do service worker são gerados em `public/` durante o build e não são versionados.
-- **Login**: Usuários são criados no painel do Supabase (Authentication → Users) e entram como **agentes**. A migração `0003` torna administrador o usuário mais antigo; depois disso, promova outros pela tela **Administração → Usuários** (o sistema impede ficar sem nenhum administrador).
+- **Login e cadastro**: Novos usuários se cadastram em `/cadastro` e entram como **agentes pendentes** (usuários criados direto no painel do Supabase também ficam pendentes e precisam ser aprovados no app). A migração `0003` torna administrador o usuário mais antigo; promova outros em **Administração → Usuários** (o sistema impede ficar sem nenhum administrador ativo).
+- **Configuração do Supabase Auth para o cadastro**: em *Authentication → Sign In / Providers*, mantenha **Allow new users to sign up** ligado. Se **Confirm email** estiver ligado, a pessoa confirma o e-mail antes de ir para a fila de aprovação — inclua `https://SEU-DOMINIO/auth/callback` em *Authentication → URL Configuration → Redirect URLs*.
+- **Fotos das funcionais**: ficam no bucket privado `funcionais`; visitantes só conseguem *enviar* imagens para `cadastro/` (o envio acontece antes de a conta existir) e apenas administradores veem ou apagam.

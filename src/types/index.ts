@@ -70,11 +70,23 @@ export interface FotoView extends Foto {
 
 export type Papel = 'admin' | 'agente'
 
+export type StatusConta = 'pendente' | 'ativo' | 'recusado' | 'bloqueado'
+
 export interface Perfil {
     user_id: string
     nome: string | null
     email: string | null
     papel: Papel
+    /** Ausente antes da migração 0006 (tratado como ativo). */
+    status?: StatusConta
+    created_at?: string
+}
+
+/** Dados completos vistos pelo admin na tela de usuários. */
+export interface PerfilCompleto extends Perfil {
+    cpf: string | null
+    matricula: string | null
+    funcional_url: string | null
 }
 
 export type AcaoAuditoria = 'criado' | 'alterado' | 'excluido' | 'restaurado' | 'apagado'
