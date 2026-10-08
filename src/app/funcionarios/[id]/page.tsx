@@ -25,7 +25,7 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
     const fotoSrc = await getSignedPhotoUrl(supabase, funcionario.foto_url)
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-safe">
+        <div className="min-h-screen bg-page pb-safe lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:items-start lg:max-w-6xl lg:mx-auto lg:p-6">
             {/* Header Image */}
             <EmployeeImageHeader
                 fotoUrl={fotoSrc}
@@ -33,62 +33,62 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
                 apelido={funcionario.apelido}
             />
 
-            <main className="p-4 -mt-4 relative z-10 space-y-4">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+            <main className="p-4 -mt-4 relative z-10 space-y-4 lg:p-0 lg:mt-0">
+                <div className="bg-surface rounded-2xl shadow-sm border border-line p-6 space-y-6">
 
                     <Section icon={<FileText className="h-5 w-5 text-blue-500" />} title="Documentos">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <span className="text-xs text-gray-500 uppercase font-semibold">CPF</span>
-                                <p className="font-mono text-gray-900">{formatCpf(funcionario.cpf)}</p>
+                                <span className="text-xs text-fg-muted uppercase font-semibold">CPF</span>
+                                <p className="font-mono text-fg">{formatCpf(funcionario.cpf)}</p>
                             </div>
                             <div>
-                                <span className="text-xs text-gray-500 uppercase font-semibold">RG</span>
-                                <p className="font-mono text-gray-900">{funcionario.rg || '-'}</p>
+                                <span className="text-xs text-fg-muted uppercase font-semibold">RG</span>
+                                <p className="font-mono text-fg">{funcionario.rg || '-'}</p>
                             </div>
                         </div>
                     </Section>
 
-                    <hr className="border-gray-100" />
+                    <hr className="border-line" />
 
                     <Section icon={<MapPin className="h-5 w-5 text-red-500" />} title="Endereço">
                         {funcionario.logradouro ? (
-                            <div className="text-gray-700">
+                            <div className="text-fg-soft">
                                 <p className="font-medium">{[funcionario.logradouro, funcionario.numero].filter(Boolean).join(', ')}</p>
-                                {funcionario.complemento && <p className="text-sm text-gray-500">{funcionario.complemento}</p>}
+                                {funcionario.complemento && <p className="text-sm text-fg-muted">{funcionario.complemento}</p>}
                                 <p>{[funcionario.bairro, [funcionario.cidade, funcionario.estado].filter(Boolean).join('/')].filter(Boolean).join(' - ')}</p>
-                                {funcionario.cep && <p className="text-sm text-gray-400 mt-1">CEP {formatCep(funcionario.cep)}</p>}
+                                {funcionario.cep && <p className="text-sm text-fg-subtle mt-1">CEP {formatCep(funcionario.cep)}</p>}
                             </div>
                         ) : funcionario.endereco ? (
-                            <p className="text-gray-700">{funcionario.endereco}</p>
+                            <p className="text-fg-soft">{funcionario.endereco}</p>
                         ) : (
-                            <p className="text-gray-500 italic">Endereço não informado</p>
+                            <p className="text-fg-muted italic">Endereço não informado</p>
                         )}
                     </Section>
 
-                    <hr className="border-gray-100" />
+                    <hr className="border-line" />
 
                     <Section icon={<User className="h-5 w-5 text-purple-500" />} title="Filiação">
                         <div className="space-y-3">
                             <div>
-                                <span className="text-xs text-gray-500 uppercase font-semibold">Mãe</span>
-                                <p className="text-gray-900">{funcionario.nome_mae || funcionario.filiacao || 'Não informado'}</p>
+                                <span className="text-xs text-fg-muted uppercase font-semibold">Mãe</span>
+                                <p className="text-fg">{funcionario.nome_mae || funcionario.filiacao || 'Não informado'}</p>
                             </div>
 
                             {funcionario.nome_pai && (
                                 <div>
-                                    <span className="text-xs text-gray-500 uppercase font-semibold">Pai</span>
-                                    <p className="text-gray-900">{funcionario.nome_pai}</p>
+                                    <span className="text-xs text-fg-muted uppercase font-semibold">Pai</span>
+                                    <p className="text-fg">{funcionario.nome_pai}</p>
                                 </div>
                             )}
                         </div>
                     </Section>
 
-                    <hr className="border-gray-100" />
+                    <hr className="border-line" />
 
                     <EmployeeActions id={funcionario.id} fotoUrl={funcionario.foto_url} />
 
-                    <div className="flex items-center gap-2 text-xs text-gray-400 pt-2 justify-center">
+                    <div className="flex items-center gap-2 text-xs text-fg-subtle pt-2 justify-center">
                         <Calendar className="h-4 w-4" />
                         <span>Cadastrado em {formatDate(funcionario.created_at)}</span>
                     </div>
@@ -104,7 +104,7 @@ function Section({ icon, title, children }: { icon: React.ReactNode, title: stri
         <div className="space-y-3">
             <div className="flex items-center gap-2">
                 {icon}
-                <h3 className="font-semibold text-gray-900">{title}</h3>
+                <h3 className="font-semibold text-fg">{title}</h3>
             </div>
             <div>{children}</div>
         </div>

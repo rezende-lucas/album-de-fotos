@@ -24,15 +24,15 @@ export default async function EditEmployeePage({ params }: { params: Promise<{ i
     const fotoSrc = await getSignedPhotoUrl(supabase, funcionario.foto_url)
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-safe">
-            <header className="bg-white shadow-sm sticky top-0 z-10 px-4 py-4 flex items-center gap-3">
-                <Link href={`/funcionarios/${id}`} className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-full" aria-label="Voltar">
+        <div className="min-h-screen bg-page pb-safe">
+            <header className="bg-surface shadow-sm sticky top-0 z-10 px-4 py-4 flex items-center gap-3">
+                <Link href={`/funcionarios/${id}`} className="p-2 -ml-2 text-fg-soft hover:bg-surface-muted rounded-full" aria-label="Voltar">
                     <ArrowLeft className="h-6 w-6" />
                 </Link>
-                <h1 className="text-lg font-bold text-gray-900">Editar Abordado</h1>
+                <h1 className="text-lg font-bold text-fg">Editar Abordado</h1>
             </header>
 
-            <main className="p-4 max-w-lg mx-auto">
+            <main className="p-4 max-w-2xl mx-auto">
                 <EmployeeForm initialData={funcionario} initialPhotoSrc={fotoSrc} />
             </main>
         </div>

@@ -17,7 +17,7 @@ export default function LogoutButton() {
     return (
         <button
             onClick={handleLogout}
-            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+            className="p-2 text-fg-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-full transition-colors"
             title="Sair"
             aria-label="Sair"
         >

@@ -1,11 +1,10 @@
+import Link from 'next/link'
+import { Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import EmployeeList from '@/components/EmployeeList'
 import { redirect } from 'next/navigation'
 import LogoutButton from '@/components/LogoutButton'
-import { getPhotoPath, getSignedPhotoUrls } from '@/lib/photos'
-import { FUNCIONARIO_LIST_COLUMNS, type FuncionarioListItem } from '@/types'
-
-export const dynamic = 'force-dynamic'
+import { listarCidades, listarFuncionarios } from '@/lib/funcionarios'
 
 export default async function Dashboard() {
     const supabase = await createClient()
@@ -15,38 +14,37 @@ export default async function Dashboard() {
         redirect('/login')
     }
 
-    const { data, error } = await supabase
-        .from('funcionarios')
-        .select(FUNCIONARIO_LIST_COLUMNS)
-        .order('nome_completo')
-
-    if (error) {
-        console.error(error)
-        throw new Error('Erro ao carregar abordados.')
-    }
-
-    const rows = (data ?? []) as Omit<FuncionarioListItem, 'foto_src'>[]
-    const signedUrls = await getSignedPhotoUrls(supabase, rows.map((f) => f.foto_url))
-    const funcionarios: FuncionarioListItem[] = rows.map((f) => {
-        const path = getPhotoPath(f.foto_url)
-        return { ...f, foto_src: path ? signedUrls[path] ?? null : null }
-    })
+    const [{ items, total }, cidades] = await Promise.all([
+        listarFuncionarios(supabase, {}),
+        listarCidades(supabase),
+    ])
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <header className="px-4 py-6 flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Abordados</h1>
-                    <p className="text-sm text-gray-500">
-                        {funcionarios.length} {funcionarios.length === 1 ? 'cadastrado' : 'cadastrados'}
-                    </p>
-                </div>
-                <LogoutButton />
-            </header>
+        <div className="min-h-screen bg-page">
+            <div className="max-w-6xl mx-auto">
+                <header className="px-4 py-6 flex justify-between items-center gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-fg">Abordados</h1>
+                        <p className="text-sm text-fg-muted">
+                            {total} {total === 1 ? 'cadastrado' : 'cadastrados'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href="/funcionarios/adicionar"
+                            className="hidden sm:flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors"
+                        >
+                            <Plus className="h-5 w-5" />
+                            Novo abordado
+                        </Link>
+                        <LogoutButton />
+                    </div>
+                </header>
 
-            <main>
-                <EmployeeList initialFuncionarios={funcionarios} />
-            </main>
+                <main>
+                    <EmployeeList initialItems={items} initialTotal={total} cidades={cidades} />
+                </main>
+            </div>
         </div>
     )
 }

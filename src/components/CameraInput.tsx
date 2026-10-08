@@ -77,7 +77,7 @@ export default function CameraInput({ onImageSelected, initialPreview }: CameraI
                 className={`
           relative w-full aspect-square max-w-sm mx-auto rounded-2xl border-2 border-dashed
           flex flex-col items-center justify-center transition-colors overflow-hidden
-          ${preview ? 'border-blue-500 bg-black' : 'cursor-pointer border-gray-300 bg-gray-50 hover:bg-gray-100'}
+          ${preview ? 'border-blue-500 bg-black' : 'cursor-pointer border-line-strong bg-page hover:bg-surface-muted'}
         `}
             >
                 {preview ? (
@@ -119,17 +119,17 @@ export default function CameraInput({ onImageSelected, initialPreview }: CameraI
                     </>
                 ) : (
                     <div className="text-center p-6">
-                        <div className="mx-auto h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-600">
+                        <div className="mx-auto h-16 w-16 bg-blue-100 dark:bg-blue-950 rounded-full flex items-center justify-center mb-4 text-blue-600 dark:text-blue-300">
                             {loading ? (
                                 <RefreshCw className="h-8 w-8 animate-spin" />
                             ) : (
                                 <Camera className="h-8 w-8" />
                             )}
                         </div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-fg">
                             {loading ? 'Processando...' : 'Tirar Foto / Upload'}
                         </p>
-                        <p className="mt-1 text-xs text-gray-500">
+                        <p className="mt-1 text-xs text-fg-muted">
                             Toque para abrir a câmera
                         </p>
                     </div>

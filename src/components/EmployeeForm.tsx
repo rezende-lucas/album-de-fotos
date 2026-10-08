@@ -11,6 +11,7 @@ import { Loader2, Save } from 'lucide-react'
 import { Funcionario } from '@/types'
 import { formatCep, formatCpf, isValidCpf, onlyDigits } from '@/lib/format'
 import { PHOTO_BUCKET, removePhoto } from '@/lib/photos'
+import { useToast } from '@/components/Toast'
 
 const schema = z.object({
     nome_completo: z.string().trim().min(3, 'Nome deve ter ao menos 3 letras'),
@@ -54,6 +55,7 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
 
     const router = useRouter()
     const supabase = createClient()
+    const showToast = useToast()
 
     // Default values if editing
     const defaultValues: Partial<FormData> = initialData ? {
@@ -165,6 +167,7 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
                 await removePhoto(supabase, previousFoto)
             }
 
+            showToast(initialData?.id ? 'Alterações salvas' : 'Abordado cadastrado')
             router.push(initialData?.id ? `/funcionarios/${initialData.id}` : '/')
             router.refresh()
         } catch (err) {
@@ -181,7 +184,7 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
     return (
         <>
             {errorHeader && (
-                <div role="alert" className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm mb-6">
+                <div role="alert" className="p-4 bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-900 rounded-xl border text-sm mb-6">
                     {errorHeader}
                 </div>
             )}
@@ -189,8 +192,8 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
 
                 <section className="space-y-4">
-                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Dados Pessoais</h2>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                    <h2 className="text-sm font-bold text-fg uppercase tracking-wider">Dados Pessoais</h2>
+                    <div className="bg-surface p-4 rounded-2xl shadow-sm border border-line space-y-4">
                         <div className="flex justify-center mb-6">
                             <CameraInput onImageSelected={handlePhotoSelected} initialPreview={initialPhotoSrc || undefined} />
                         </div>
@@ -231,8 +234,8 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
                 </section>
 
                 <section className="space-y-4">
-                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Filiação</h2>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                    <h2 className="text-sm font-bold text-fg uppercase tracking-wider">Filiação</h2>
+                    <div className="bg-surface p-4 rounded-2xl shadow-sm border border-line space-y-4">
                         <Field id="nome_mae" label="Nome da Mãe *" error={errors.nome_mae?.message}>
                             <input id="nome_mae" {...register('nome_mae')} className="input" autoComplete="off" aria-invalid={!!errors.nome_mae} />
                         </Field>
@@ -243,8 +246,8 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
                 </section>
 
                 <section className="space-y-4">
-                    <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Endereço</h2>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+                    <h2 className="text-sm font-bold text-fg uppercase tracking-wider">Endereço</h2>
+                    <div className="bg-surface p-4 rounded-2xl shadow-sm border border-line space-y-4">
                         <div className="grid grid-cols-12 gap-4">
                             <Field id="cep" label="CEP *" error={errors.cep?.message} className="col-span-12 sm:col-span-5">
                                 <div className="relative">
@@ -266,7 +269,7 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
                                     />
                                     {loadingCep && <div className="absolute right-3 top-3.5"><Loader2 className="h-5 w-5 animate-spin text-blue-500" /></div>}
                                 </div>
-                                {cepMessage && <span className="text-amber-600 text-xs mt-1 block">{cepMessage}</span>}
+                                {cepMessage && <span className="text-amber-600 dark:text-amber-400 text-xs mt-1 block">{cepMessage}</span>}
                             </Field>
                             <Field id="cidade" label="Cidade *" error={errors.cidade?.message} className="col-span-9 sm:col-span-5">
                                 <input id="cidade" {...register('cidade')} className="input" autoComplete="off" aria-invalid={!!errors.cidade} />
@@ -304,7 +307,7 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full sticky bottom-6 flex justify-center items-center gap-2 py-4 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-200 active:scale-[0.98] transition-all disabled:opacity-70"
+                    className="w-full sticky bottom-6 flex justify-center items-center gap-2 py-4 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl shadow-xl shadow-blue-200 dark:shadow-none active:scale-[0.98] transition-all disabled:opacity-70"
                 >
                     {isSubmitting ? <Loader2 className="animate-spin" aria-label="Salvando" /> : <><Save className="h-5 w-5" /> Salvar</>}
                 </button>
