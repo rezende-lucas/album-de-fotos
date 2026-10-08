@@ -175,7 +175,7 @@ export default function EmployeeForm({ initialData, initialPhotoSrc }: EmployeeF
             if (uploadedPath) await removePhoto(supabase, uploadedPath)
 
             const { code, message } = err as { code?: string; message?: string }
-            setErrorHeader(code === '23505' ? 'Este CPF já está cadastrado.' : message || 'Erro ao salvar')
+            setErrorHeader(code === '23505' ? 'Este CPF já está cadastrado (o cadastro pode estar na lixeira).' : message || 'Erro ao salvar')
             window.scrollTo({ top: 0, behavior: 'smooth' })
             setIsSubmitting(false)
         }
