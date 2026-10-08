@@ -10,7 +10,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
     return (
         <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-fg-subtle" />
             </div>
             <input
                 type="search"
@@ -18,7 +18,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
                 placeholder="Buscar por nome, CPF, endereço..."
                 onChange={(e) => onSearch(e.target.value)}
                 autoComplete="off"
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-base placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
+                className="block w-full pl-10 pr-3 py-3 border border-line-strong rounded-xl leading-5 bg-page text-base placeholder-fg-subtle focus:outline-none focus:bg-surface focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
             />
         </div>
     )

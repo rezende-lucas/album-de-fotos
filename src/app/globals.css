@@ -1,5 +1,40 @@
 @import "tailwindcss";
 
+/*
+ * Cores semânticas (claro/escuro). Use bg-page, bg-surface, bg-surface-muted,
+ * border-line, border-line-strong, text-fg, text-fg-soft, text-fg-muted e
+ * text-fg-subtle em vez de tons de cinza fixos.
+ */
+@theme {
+  --color-page: #f9fafb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f4f6;
+  --color-line: #f3f4f6;
+  --color-line-strong: #e5e7eb;
+  --color-fg: #111827;
+  --color-fg-soft: #374151;
+  --color-fg-muted: #6b7280;
+  --color-fg-subtle: #9ca3af;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-page: #030712;
+    --color-surface: #111827;
+    --color-surface-muted: #1f2937;
+    --color-line: #1f2937;
+    --color-line-strong: #374151;
+    --color-fg: #f9fafb;
+    --color-fg-soft: #d1d5db;
+    --color-fg-muted: #9ca3af;
+    --color-fg-subtle: #6b7280;
+  }
+}
+
 @layer base {
 
   /* Safe area for mobile PWA */
@@ -10,12 +45,12 @@
 
 @layer components {
   .label {
-    @apply block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide;
+    @apply block text-xs font-semibold text-fg-muted mb-1 uppercase tracking-wide;
   }
 
   /* text-base (16px) evita o zoom automático do iOS ao focar o campo */
   .input {
-    @apply w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-base text-gray-900 outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+    @apply w-full p-3 bg-surface-muted border border-line-strong rounded-xl text-base text-fg outline-none transition-all focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
   }
 
   .input[aria-invalid="true"] {

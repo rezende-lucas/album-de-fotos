@@ -31,7 +31,7 @@ export default function EmployeeImageHeader({ fotoUrl, nomeCompleto, apelido }: 
 
     return (
         <>
-            <div className="relative h-64 bg-gray-900 group">
+            <div className="relative h-64 sm:h-80 lg:h-[32rem] lg:sticky lg:top-6 lg:rounded-2xl lg:overflow-hidden bg-gray-900 group">
                 {fotoUrl ? (
                     <button
                         type="button"
