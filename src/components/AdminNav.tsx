@@ -10,7 +10,7 @@ const TABS = [
     { href: '/admin/usuarios', label: 'Usuários', icon: Users },
 ]
 
-export default function AdminNav() {
+export default function AdminNav({ pendentes = 0 }: { pendentes?: number }) {
     const pathname = usePathname()
 
     return (
@@ -28,6 +28,11 @@ export default function AdminNav() {
                     >
                         <Icon className="h-4 w-4" />
                         {label}
+                        {href === '/admin/usuarios' && pendentes > 0 && (
+                            <span className="ml-0.5 min-w-5 h-5 px-1.5 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center" aria-label={`${pendentes} pendentes`}>
+                                {pendentes}
+                            </span>
+                        )}
                     </Link>
                 )
             })}

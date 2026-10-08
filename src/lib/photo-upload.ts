@@ -19,13 +19,18 @@ export interface PhotoDraft {
 
 export const MAX_FOTOS = 20
 
+/** Comprime uma foto para no máximo 1600 px / ~1 MB (no próprio aparelho). */
+export function comprimirFoto(original: File): Promise<File> {
+    return imageCompression(original, { maxSizeMB: 1, maxWidthOrHeight: 1600, useWebWorker: false })
+}
+
 /**
  * Comprime a foto (até 1600 px) e gera a miniatura (320 px) no navegador.
  * useWebWorker fica desligado: o worker da biblioteca baixa código do CDN jsDelivr em
  * tempo de execução (terceiro externo e falha sem internet).
  */
 export async function prepararFoto(original: File): Promise<{ file: File, thumbFile: File }> {
-    const file = await imageCompression(original, { maxSizeMB: 1, maxWidthOrHeight: 1600, useWebWorker: false })
+    const file = await comprimirFoto(original)
     const thumbFile = await imageCompression(file, {
         maxSizeMB: 0.05,
         maxWidthOrHeight: 320,

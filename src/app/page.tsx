@@ -15,9 +15,13 @@ export default async function Dashboard() {
         redirect('/login')
     }
 
-    const [{ items, total }, cidades] = await Promise.all([
+    const isAdmin = perfil.papel === 'admin'
+    const [{ items, total }, cidades, { count: pendentes }] = await Promise.all([
         listarFuncionarios(supabase, {}),
         listarCidades(supabase),
+        isAdmin
+            ? supabase.from('perfis').select('user_id', { count: 'exact', head: true }).eq('status', 'pendente')
+            : Promise.resolve({ count: 0 }),
     ])
 
     return (
@@ -31,14 +35,19 @@ export default async function Dashboard() {
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {perfil.papel === 'admin' && (
+                        {isAdmin && (
                             <Link
-                                href="/admin"
-                                aria-label="Administração"
+                                href={pendentes ? '/admin/usuarios' : '/admin'}
+                                aria-label={pendentes ? `Administração: ${pendentes} cadastros pendentes` : 'Administração'}
                                 title="Administração"
-                                className="p-2 text-fg-muted hover:text-blue-600 hover:bg-surface-muted rounded-full transition-colors"
+                                className="relative p-2 text-fg-muted hover:text-blue-600 hover:bg-surface-muted rounded-full transition-colors"
                             >
                                 <ShieldCheck className="h-6 w-6" />
+                                {!!pendentes && (
+                                    <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center">
+                                        {pendentes}
+                                    </span>
+                                )}
                             </Link>
                         )}
                         <Link

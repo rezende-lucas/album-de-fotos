@@ -2,12 +2,19 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { getPerfil } from '@/lib/auth'
+import { createClient } from '@/lib/supabase/server'
 import AdminNav from '@/components/AdminNav'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
     const perfil = await getPerfil()
     if (!perfil) redirect('/login')
-    if (perfil.papel !== 'admin') redirect('/')
+    if (perfil.papel !== 'admin' || (perfil.status && perfil.status !== 'ativo')) redirect('/')
+
+    const supabase = await createClient()
+    const { count: pendentes } = await supabase
+        .from('perfis')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('status', 'pendente')
 
     return (
         <div className="min-h-screen bg-page pb-safe">
@@ -18,7 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     </Link>
                     <h1 className="text-lg font-bold text-fg">Administração</h1>
                 </div>
-                <AdminNav />
+                <AdminNav pendentes={pendentes ?? 0} />
             </header>
             <main className="max-w-4xl mx-auto p-4">{children}</main>
         </div>

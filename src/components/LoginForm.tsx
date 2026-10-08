@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Lock, Mail, Loader2 } from 'lucide-react'
 
 const ERROR_MESSAGES: Record<string, string> = {
     'Invalid login credentials': 'Email ou senha inválidos.',
-    'Email not confirmed': 'Email ainda não confirmado.',
+    'Email not confirmed': 'E-mail ainda não confirmado. Abra o link enviado para o seu e-mail.',
 }
 
 function translateError(message: string) {
@@ -52,7 +53,7 @@ export default function LoginForm({ initialError }: { initialError?: string | nu
                         Acesso Restrito
                     </h2>
                     <p className="mt-2 text-sm text-fg-soft">
-                        Entre com suas credenciais de administrador.
+                        Entre com seu e-mail e senha.
                     </p>
                 </div>
 
@@ -121,6 +122,13 @@ export default function LoginForm({ initialError }: { initialError?: string | nu
                         )}
                     </button>
                 </form>
+
+                <p className="text-center text-sm text-fg-muted">
+                    Não tem acesso?{' '}
+                    <Link href="/cadastro" className="font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                        Cadastre-se
+                    </Link>
+                </p>
             </div>
         </div>
     )
