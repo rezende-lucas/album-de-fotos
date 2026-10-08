@@ -1,29 +1,34 @@
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, User, MapPin, FileText, Calendar } from 'lucide-react'
-import Link from 'next/link'
+import { User, MapPin, FileText, Calendar } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import EmployeeImageHeader from '@/components/EmployeeImageHeader'
 import EmployeeActions from '@/components/EmployeeActions'
+import { getSignedPhotoUrl } from '@/lib/photos'
+import { formatCep, formatCpf, formatDate } from '@/lib/format'
+import type { Funcionario } from '@/types'
 
 export default async function EmployeeDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const supabase = await createClient()
     const { id } = await params
 
-    const { data: funcionario, error } = await supabase
+    const { data, error } = await supabase
         .from('funcionarios')
         .select('*')
         .eq('id', id)
-        .single()
+        .maybeSingle()
 
-    if (error || !funcionario) {
+    if (error || !data) {
         notFound()
     }
+
+    const funcionario = data as Funcionario
+    const fotoSrc = await getSignedPhotoUrl(supabase, funcionario.foto_url)
 
     return (
         <div className="min-h-screen bg-gray-50 pb-safe">
             {/* Header Image */}
             <EmployeeImageHeader
-                fotoUrl={funcionario.foto_url}
+                fotoUrl={fotoSrc}
                 nomeCompleto={funcionario.nome_completo}
                 apelido={funcionario.apelido}
             />
@@ -35,7 +40,7 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <span className="text-xs text-gray-500 uppercase font-semibold">CPF</span>
-                                <p className="font-mono text-gray-900">{funcionario.cpf}</p>
+                                <p className="font-mono text-gray-900">{formatCpf(funcionario.cpf)}</p>
                             </div>
                             <div>
                                 <span className="text-xs text-gray-500 uppercase font-semibold">RG</span>
@@ -49,13 +54,15 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
                     <Section icon={<MapPin className="h-5 w-5 text-red-500" />} title="Endereço">
                         {funcionario.logradouro ? (
                             <div className="text-gray-700">
-                                <p className="font-medium">{funcionario.logradouro}, {funcionario.numero}</p>
+                                <p className="font-medium">{[funcionario.logradouro, funcionario.numero].filter(Boolean).join(', ')}</p>
                                 {funcionario.complemento && <p className="text-sm text-gray-500">{funcionario.complemento}</p>}
-                                <p>{funcionario.bairro} - {funcionario.cidade}/{funcionario.estado}</p>
-                                <p className="text-sm text-gray-400 mt-1">{funcionario.cep}</p>
+                                <p>{[funcionario.bairro, [funcionario.cidade, funcionario.estado].filter(Boolean).join('/')].filter(Boolean).join(' - ')}</p>
+                                {funcionario.cep && <p className="text-sm text-gray-400 mt-1">CEP {formatCep(funcionario.cep)}</p>}
                             </div>
+                        ) : funcionario.endereco ? (
+                            <p className="text-gray-700">{funcionario.endereco}</p>
                         ) : (
-                            <p className="text-gray-500 italic">Endereço não informado (ou formato antigo)</p>
+                            <p className="text-gray-500 italic">Endereço não informado</p>
                         )}
                     </Section>
 
@@ -77,14 +84,13 @@ export default async function EmployeeDetailsPage({ params }: { params: Promise<
                         </div>
                     </Section>
 
-
                     <hr className="border-gray-100" />
 
-                    <EmployeeActions id={funcionario.id} />
+                    <EmployeeActions id={funcionario.id} fotoUrl={funcionario.foto_url} />
 
                     <div className="flex items-center gap-2 text-xs text-gray-400 pt-2 justify-center">
                         <Calendar className="h-4 w-4" />
-                        <span>Cadastrado em {new Date(funcionario.created_at).toLocaleDateString()}</span>
+                        <span>Cadastrado em {formatDate(funcionario.created_at)}</span>
                     </div>
 
                 </div>

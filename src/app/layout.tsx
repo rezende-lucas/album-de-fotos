@@ -7,16 +7,28 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: "Registro de Abordados",
-    description: "Gestão de abordados da empresa",
+    description: "Registro de abordados com foto, documentos e endereço",
     manifest: "/manifest.json",
+    applicationName: "Registro de Abordados",
+    appleWebApp: {
+        capable: true,
+        title: "Abordados",
+        statusBarStyle: "default",
+    },
+    icons: {
+        icon: "/icons/icon-192x192.png",
+        apple: "/icons/apple-touch-icon.png",
+    },
+    formatDetection: {
+        telephone: false,
+    },
 };
 
 export const viewport: Viewport = {
-    themeColor: "#ffffff",
+    themeColor: "#2563eb",
     width: "device-width",
     initialScale: 1,
-    maximumScale: 1,
-    userScalable: false, // Prevent zoom on inputs
+    viewportFit: "cover",
 };
 
 export default function RootLayout({
