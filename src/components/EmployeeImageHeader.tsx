@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, User, X, Maximize2 } from 'lucide-react'
@@ -14,26 +14,44 @@ interface EmployeeImageHeaderProps {
 export default function EmployeeImageHeader({ fotoUrl, nomeCompleto, apelido }: EmployeeImageHeaderProps) {
     const [isOpen, setIsOpen] = useState(false)
 
+    useEffect(() => {
+        if (!isOpen) return
+
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIsOpen(false)
+        }
+        const previousOverflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        window.addEventListener('keydown', onKeyDown)
+        return () => {
+            document.body.style.overflow = previousOverflow
+            window.removeEventListener('keydown', onKeyDown)
+        }
+    }, [isOpen])
+
     return (
         <>
             <div className="relative h-64 bg-gray-900 group">
                 {fotoUrl ? (
-                    <div
+                    <button
+                        type="button"
                         onClick={() => setIsOpen(true)}
-                        className="relative h-full w-full cursor-pointer"
+                        aria-label="Ampliar foto"
+                        className="relative block h-full w-full cursor-zoom-in"
                     >
                         <Image
                             src={fotoUrl}
                             alt={nomeCompleto}
                             fill
                             priority
+                            sizes="100vw"
                             className="object-cover opacity-90 transition-opacity hover:opacity-100"
                         />
                         {/* Visual indicator for click */}
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/30 p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
                             <Maximize2 className="h-6 w-6 text-white" />
                         </div>
-                    </div>
+                    </button>
                 ) : (
                     <div className="flex items-center justify-center h-full text-white/20">
                         <User className="h-32 w-32" />
@@ -42,24 +60,34 @@ export default function EmployeeImageHeader({ fotoUrl, nomeCompleto, apelido }: 
 
                 <Link
                     href="/"
+                    aria-label="Voltar para a lista"
                     className="absolute top-4 left-4 p-2 bg-black/30 backdrop-blur-md rounded-full text-white hover:bg-black/50 transition-colors z-10"
                 >
                     <ArrowLeft className="h-6 w-6" />
                 </Link>
 
                 <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-gray-900 to-transparent h-32 pointer-events-none" />
-                <div className="absolute bottom-6 left-6 text-white pointer-events-none">
-                    <h1 className="text-3xl font-bold">{apelido || nomeCompleto.split(' ')[0]}</h1>
-                    <p className="text-white/80 font-medium">{nomeCompleto}</p>
+                <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
+                    <h1 className="text-3xl font-bold truncate">{apelido || nomeCompleto.split(' ')[0]}</h1>
+                    <p className="text-white/80 font-medium truncate">{nomeCompleto}</p>
                 </div>
             </div>
 
             {/* Full Screen Modal */}
             {isOpen && fotoUrl && (
-                <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 animate-in fade-in duration-200">
+                <div
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={`Foto de ${nomeCompleto}`}
+                    onClick={() => setIsOpen(false)}
+                    className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+                >
                     <button
+                        type="button"
                         onClick={() => setIsOpen(false)}
-                        className="absolute top-4 right-4 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors"
+                        aria-label="Fechar"
+                        autoFocus
+                        className="absolute top-4 right-4 z-10 p-3 bg-white/10 rounded-full text-white hover:bg-white/20 transition-colors"
                     >
                         <X className="h-6 w-6" />
                     </button>
@@ -69,8 +97,9 @@ export default function EmployeeImageHeader({ fotoUrl, nomeCompleto, apelido }: 
                             src={fotoUrl}
                             alt={nomeCompleto}
                             fill
+                            sizes="(max-width: 896px) 100vw, 896px"
                             className="object-contain"
-                            quality={100}
+                            quality={90}
                         />
                     </div>
                 </div>

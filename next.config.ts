@@ -15,10 +15,13 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   images: {
+    qualities: [75, 90],
     remotePatterns: [
       {
+        // Fotos do Supabase Storage (URLs assinadas do bucket privado)
         protocol: 'https',
         hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/**',
       },
     ],
   },

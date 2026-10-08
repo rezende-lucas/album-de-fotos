@@ -10,8 +10,8 @@ export default function LogoutButton() {
 
     const handleLogout = async () => {
         await supabase.auth.signOut()
-        router.refresh()
         router.push('/login')
+        router.refresh()
     }
 
     return (
@@ -19,6 +19,7 @@ export default function LogoutButton() {
             onClick={handleLogout}
             className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
             title="Sair"
+            aria-label="Sair"
         >
             <LogOut className="h-6 w-6" />
         </button>

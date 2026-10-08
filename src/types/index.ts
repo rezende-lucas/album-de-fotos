@@ -19,3 +19,16 @@ export interface Funcionario {
     cep?: string
     user_id?: string
 }
+
+/** Colunas carregadas na listagem (dashboard). */
+export const FUNCIONARIO_LIST_COLUMNS =
+    'id, nome_completo, apelido, cpf, rg, nome_mae, nome_pai, logradouro, bairro, cidade, estado, endereco, foto_url'
+
+export type FuncionarioListItem = Pick<
+    Funcionario,
+    | 'id' | 'nome_completo' | 'apelido' | 'cpf' | 'rg' | 'nome_mae' | 'nome_pai'
+    | 'logradouro' | 'bairro' | 'cidade' | 'estado' | 'endereco' | 'foto_url'
+> & {
+    /** URL assinada da foto, pronta para exibição. */
+    foto_src: string | null
+}

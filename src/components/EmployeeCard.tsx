@@ -1,21 +1,29 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Funcionario } from '@/types'
+import { FuncionarioListItem } from '@/types'
 import { User, MapPin } from 'lucide-react'
 
 interface EmployeeCardProps {
-    funcionario: Funcionario
+    funcionario: FuncionarioListItem
+}
+
+function formatShortAddress(f: FuncionarioListItem) {
+    const cityUf = [f.cidade, f.estado].filter(Boolean).join('/')
+    const parts = [f.bairro, cityUf].filter(Boolean)
+    return parts.length > 0 ? parts.join(' – ') : f.endereco
 }
 
 export default function EmployeeCard({ funcionario }: EmployeeCardProps) {
+    const address = formatShortAddress(funcionario)
+
     return (
         <Link href={`/funcionarios/${funcionario.id}`} className="block">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden active:scale-[0.98] transition-transform duration-200">
                 <div className="flex p-4 gap-4">
                     <div className="relative h-20 w-20 flex-shrink-0 rounded-full overflow-hidden bg-gray-100 border-2 border-white shadow-sm">
-                        {funcionario.foto_url ? (
+                        {funcionario.foto_src ? (
                             <Image
-                                src={funcionario.foto_url}
+                                src={funcionario.foto_src}
                                 alt={funcionario.nome_completo}
                                 fill
                                 className="object-cover"
@@ -35,10 +43,10 @@ export default function EmployeeCard({ funcionario }: EmployeeCardProps) {
                         <p className="text-sm text-gray-500 truncate">
                             {funcionario.nome_completo}
                         </p>
-                        {funcionario.endereco && (
+                        {address && (
                             <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
-                                <MapPin className="h-3 w-3" />
-                                <span className="truncate">{funcionario.endereco}</span>
+                                <MapPin className="h-3 w-3 flex-shrink-0" />
+                                <span className="truncate">{address}</span>
                             </div>
                         )}
                     </div>

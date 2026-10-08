@@ -13,10 +13,12 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
                 <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
-                type="text"
+                type="search"
+                aria-label="Buscar abordados"
                 placeholder="Buscar por nome, CPF, endereço..."
                 onChange={(e) => onSearch(e.target.value)}
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
+                autoComplete="off"
+                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-gray-50 text-base placeholder-gray-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
             />
         </div>
     )
