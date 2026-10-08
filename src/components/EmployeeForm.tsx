@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { createClient } from '@/lib/supabase/client'
 import PhotoManager from '@/components/PhotoManager'
+import AbordagemFields from '@/components/AbordagemFields'
+import { novaAbordagemDraft, salvarAbordagem, validarAbordagem } from '@/lib/abordagens'
 import { Loader2, Save } from 'lucide-react'
 import type { Funcionario, FotoView } from '@/types'
 import { formatCep, formatCpf, isValidCpf, onlyDigits } from '@/lib/format'
@@ -38,11 +40,17 @@ interface EmployeeFormProps {
     initialFotos?: FotoView[]
     /** Cadastro antigo sem álbum: URL assinada da foto única. */
     legacyPhotoSrc?: string | null
+    /** Novo cadastro feito durante uma abordagem: registra a abordagem junto. */
+    comAbordagem?: boolean
+    /** Valores vindos da busca da abordagem. */
+    defaultCpf?: string
+    defaultNome?: string
 }
 
-export default function EmployeeForm({ initialData, initialFotos = [], legacyPhotoSrc }: EmployeeFormProps) {
+export default function EmployeeForm({ initialData, initialFotos = [], legacyPhotoSrc, comAbordagem = false, defaultCpf, defaultNome }: EmployeeFormProps) {
     const [fotosIniciais] = useState(() => draftsIniciais(initialFotos, initialData?.foto_url, legacyPhotoSrc))
     const [fotos, setFotos] = useState<PhotoDraft[]>(fotosIniciais)
+    const [abordagem, setAbordagem] = useState(novaAbordagemDraft)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [loadingCep, setLoadingCep] = useState(false)
     const [cepMessage, setCepMessage] = useState<string | null>(null)
@@ -68,7 +76,10 @@ export default function EmployeeForm({ initialData, initialFotos = [], legacyPho
         bairro: initialData.bairro || '',
         cidade: initialData.cidade || '',
         estado: initialData.estado || '',
-    } : {}
+    } : {
+        cpf: defaultCpf ? formatCpf(defaultCpf) : undefined,
+        nome_completo: defaultNome || undefined,
+    }
 
     const { register, handleSubmit, formState: { errors }, setValue, setFocus } = useForm<FormData>({
         resolver: zodResolver(schema),
@@ -107,6 +118,13 @@ export default function EmployeeForm({ initialData, initialFotos = [], legacyPho
     }
 
     const onSubmit = async (data: FormData) => {
+        const abordagemInvalida = comAbordagem ? validarAbordagem(abordagem) : null
+        if (abordagemInvalida) {
+            setErrorHeader(abordagemInvalida)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            return
+        }
+
         setIsSubmitting(true)
         setErrorHeader(null)
 
@@ -145,6 +163,22 @@ export default function EmployeeForm({ initialData, initialFotos = [], legacyPho
             etapa = 'fotos'
             await salvarFotos(supabase, funcionarioId, fotos, fotosIniciais)
 
+            if (comAbordagem) {
+                try {
+                    await salvarAbordagem(supabase, funcionarioId, abordagem)
+                } catch (err) {
+                    console.error(err)
+                    showToast('Cadastro salvo, mas a abordagem não foi registrada. Registre novamente.', 'error')
+                    router.push(`/funcionarios/${funcionarioId}/abordagens/nova`)
+                    router.refresh()
+                    return
+                }
+                showToast('Cadastro e abordagem registrados')
+                router.push(`/funcionarios/${funcionarioId}`)
+                router.refresh()
+                return
+            }
+
             showToast(initialData?.id ? 'Alterações salvas' : 'Abordado cadastrado')
             router.push(initialData?.id ? `/funcionarios/${initialData.id}` : '/')
             router.refresh()
@@ -179,6 +213,15 @@ export default function EmployeeForm({ initialData, initialFotos = [], legacyPho
             )}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
+
+                {comAbordagem && (
+                    <section className="space-y-4">
+                        <h2 className="text-sm font-bold text-fg uppercase tracking-wider">Abordagem</h2>
+                        <div className="bg-surface p-4 rounded-2xl shadow-sm border border-line">
+                            <AbordagemFields value={abordagem} onChange={setAbordagem} autoCapturarLocal />
+                        </div>
+                    </section>
+                )}
 
                 <section className="space-y-4">
                     <h2 className="text-sm font-bold text-fg uppercase tracking-wider">Fotos</h2>

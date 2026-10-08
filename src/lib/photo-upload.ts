@@ -76,7 +76,8 @@ export async function salvarFotos(
     supabase: SupabaseClient,
     funcionarioId: string,
     drafts: PhotoDraft[],
-    iniciais: PhotoDraft[]
+    iniciais: PhotoDraft[],
+    opcoes: { abordagemId?: string, ordemBase?: number } = {}
 ) {
     const removidas = iniciais.filter((i) => i.id && !drafts.some((d) => d.id === i.id))
     if (removidas.length > 0) {
@@ -95,7 +96,7 @@ export async function salvarFotos(
     const enviados: string[] = []
     try {
         for (const [ordem, draft] of drafts.entries()) {
-            const campos = { tipo: draft.tipo, legenda: draft.legenda.trim() || null, principal: draft.principal, ordem }
+            const campos = { tipo: draft.tipo, legenda: draft.legenda.trim() || null, principal: draft.principal, ordem: (opcoes.ordemBase ?? 0) + ordem }
 
             if (draft.id) {
                 const inicial = iniciais.find((i) => i.id === draft.id)
@@ -121,7 +122,7 @@ export async function salvarFotos(
 
             const { error } = await supabase
                 .from('fotos')
-                .insert({ ...campos, funcionario_id: funcionarioId, caminho, miniatura })
+                .insert({ ...campos, funcionario_id: funcionarioId, caminho, miniatura, abordagem_id: opcoes.abordagemId ?? null })
             if (error) throw error
         }
     } catch (err) {

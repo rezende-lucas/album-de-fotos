@@ -9,6 +9,7 @@ export interface Funcionario {
     rg: string | null
     foto_url: string | null
     foto_miniatura?: string | null
+    ultima_abordagem_em?: string | null
     nome_mae?: string
     nome_pai?: string
     logradouro?: string
@@ -45,6 +46,20 @@ export interface Foto {
     legenda: string | null
     principal: boolean
     ordem: number
+    abordagem_id?: string | null
+}
+
+export interface Abordagem {
+    id: string
+    funcionario_id: string
+    data_hora: string
+    latitude: number | null
+    longitude: number | null
+    precisao_m: number | null
+    local_descricao: string | null
+    motivo: string | null
+    observacoes: string | null
+    agente_id: string | null
 }
 
 /** Foto pronta para exibição (URLs assinadas). */
@@ -77,12 +92,12 @@ export interface AuditoriaItem {
 
 /** Colunas carregadas na listagem (dashboard). */
 export const FUNCIONARIO_LIST_COLUMNS =
-    'id, nome_completo, apelido, cpf, rg, nome_mae, nome_pai, logradouro, bairro, cidade, estado, endereco, foto_url, foto_miniatura'
+    'id, nome_completo, apelido, cpf, rg, nome_mae, nome_pai, logradouro, bairro, cidade, estado, endereco, foto_url, foto_miniatura, ultima_abordagem_em'
 
 export type FuncionarioListItem = Pick<
     Funcionario,
     | 'id' | 'nome_completo' | 'apelido' | 'cpf' | 'rg' | 'nome_mae' | 'nome_pai'
-    | 'logradouro' | 'bairro' | 'cidade' | 'estado' | 'endereco' | 'foto_url' | 'foto_miniatura'
+    | 'logradouro' | 'bairro' | 'cidade' | 'estado' | 'endereco' | 'foto_url' | 'foto_miniatura' | 'ultima_abordagem_em'
 > & {
     /** URL assinada da foto, pronta para exibição. */
     foto_src: string | null

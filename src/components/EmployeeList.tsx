@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { FuncionarioListItem } from '@/types'
 import EmployeeCard from '@/components/EmployeeCard'
 import SearchBar from '@/components/SearchBar'
-import { Loader2, Plus } from 'lucide-react'
+import { Loader2, Siren } from 'lucide-react'
 import Link from 'next/link'
 import { buscarFuncionariosAction } from '@/app/actions'
 import type { CidadeResumo } from '@/lib/funcionarios'
@@ -100,7 +100,7 @@ export default function EmployeeList({ initialItems, initialTotal, cidades }: Em
             <div className="px-4 pb-24">
                 {items.length === 0 && loading !== 'search' ? (
                     <div className="text-center py-10 text-fg-subtle">
-                        {isFiltering ? 'Nenhum abordado encontrado.' : 'Nenhum abordado cadastrado ainda. Toque em + para adicionar.'}
+                        {isFiltering ? 'Nenhum abordado encontrado.' : 'Nenhum abordado cadastrado ainda. Registre a primeira abordagem.'}
                     </div>
                 ) : (
                     <div className={`grid gap-3 sm:grid-cols-2 lg:grid-cols-3 transition-opacity ${loading === 'search' ? 'opacity-60' : ''}`}>
@@ -120,12 +120,12 @@ export default function EmployeeList({ initialItems, initialTotal, cidades }: Em
 
             {/* FAB - Floating Action Button (no desktop o botão fica no header) */}
             <Link
-                href="/funcionarios/adicionar"
+                href="/abordagens/nova"
                 className="sm:hidden fixed bottom-6 right-6 h-14 w-14 bg-blue-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-blue-700 active:scale-90 transition-all z-20"
                 style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
-                aria-label="Adicionar Abordado"
+                aria-label="Nova abordagem"
             >
-                <Plus className="h-8 w-8" />
+                <Siren className="h-7 w-7" />
             </Link>
         </>
     )

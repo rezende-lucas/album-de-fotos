@@ -9,10 +9,12 @@ import { TIPOS_FOTO, type TipoFoto } from '@/types'
 interface PhotoManagerProps {
     value: PhotoDraft[]
     onChange: (drafts: PhotoDraft[]) => void
+    /** Fotos avulsas (ex.: da abordagem): sem escolha de foto principal. */
+    semPrincipal?: boolean
 }
 
 /** Álbum do cadastro no formulário: adicionar, escolher a principal, tipo/legenda e remover. */
-export default function PhotoManager({ value, onChange }: PhotoManagerProps) {
+export default function PhotoManager({ value, onChange, semPrincipal = false }: PhotoManagerProps) {
     const [processando, setProcessando] = useState(0)
     const [erro, setErro] = useState<string | null>(null)
     const inputRef = useRef<HTMLInputElement>(null)
@@ -28,7 +30,7 @@ export default function PhotoManager({ value, onChange }: PhotoManagerProps) {
 
     const update = (drafts: PhotoDraft[]) => {
         // Sempre há uma principal quando existe alguma foto
-        if (drafts.length > 0 && !drafts.some((d) => d.principal)) {
+        if (!semPrincipal && drafts.length > 0 && !drafts.some((d) => d.principal)) {
             drafts = drafts.map((d, i) => ({ ...d, principal: i === 0 }))
         }
         latest.current = drafts
@@ -52,9 +54,9 @@ export default function PhotoManager({ value, onChange }: PhotoManagerProps) {
                     file,
                     thumbFile,
                     previewUrl,
-                    tipo: latest.current.length === 0 ? 'rosto' : 'outro',
+                    tipo: !semPrincipal && latest.current.length === 0 ? 'rosto' : 'outro',
                     legenda: '',
-                    principal: latest.current.length === 0,
+                    principal: !semPrincipal && latest.current.length === 0,
                 }])
             } catch (err) {
                 console.error('Erro ao processar imagem:', err)
@@ -85,7 +87,7 @@ export default function PhotoManager({ value, onChange }: PhotoManagerProps) {
                                 <Image src={foto.previewUrl} alt={TIPOS_FOTO[foto.tipo]} fill sizes="200px" className="object-cover" />
                             )}
                             <div className="absolute top-1.5 right-1.5 flex gap-1.5">
-                                <button
+                                {!semPrincipal && <button
                                     type="button"
                                     onClick={() => tornarPrincipal(foto.key)}
                                     aria-pressed={foto.principal}
@@ -94,7 +96,7 @@ export default function PhotoManager({ value, onChange }: PhotoManagerProps) {
                                     className={`p-1.5 rounded-full backdrop-blur-sm ${foto.principal ? 'bg-blue-600 text-white' : 'bg-black/50 text-white hover:bg-black/70'}`}
                                 >
                                     <Star className="h-4 w-4" fill={foto.principal ? 'currentColor' : 'none'} />
-                                </button>
+                                </button>}
                                 <button
                                     type="button"
                                     onClick={() => remover(foto.key)}
@@ -155,7 +157,9 @@ export default function PhotoManager({ value, onChange }: PhotoManagerProps) {
             <input ref={inputRef} type="file" accept="image/*" multiple onChange={adicionar} className="hidden" />
 
             <p className="text-xs text-fg-subtle">
-                Rosto, perfil, tatuagens, documentos… Toque na ★ para escolher a foto principal. Até {MAX_FOTOS} fotos.
+                {semPrincipal
+                    ? 'As fotos ficam no álbum da pessoa, vinculadas a esta abordagem.'
+                    : `Rosto, perfil, tatuagens, documentos… Toque na ★ para escolher a foto principal. Até ${MAX_FOTOS} fotos.`}
             </p>
             {erro && <p role="alert" className="error">{erro}</p>}
         </div>

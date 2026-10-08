@@ -69,7 +69,7 @@ export async function removePhoto(supabase: SupabaseClient, fotoUrl: string | nu
 export async function getFotosComUrls(supabase: SupabaseClient, funcionarioId: string): Promise<FotoView[]> {
     const { data, error } = await supabase
         .from('fotos')
-        .select('id, funcionario_id, caminho, miniatura, tipo, legenda, principal, ordem')
+        .select('id, funcionario_id, caminho, miniatura, tipo, legenda, principal, ordem, abordagem_id')
         .eq('funcionario_id', funcionarioId)
         .order('principal', { ascending: false })
         .order('ordem')

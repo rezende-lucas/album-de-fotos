@@ -54,3 +54,29 @@ export function formatDateTime(value: string): string {
         minute: '2-digit',
     })
 }
+
+const RELATIVO = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
+
+/** "hoje", "ontem", "há 3 dias", "há 2 meses"… */
+export function formatRelativeDate(value: string, agora: Date = new Date()): string {
+    const fuso = 'America/Sao_Paulo'
+    const dia = (d: Date) => new Date(d.toLocaleDateString('en-CA', { timeZone: fuso }))
+    const dias = Math.round((dia(new Date(value)).getTime() - dia(agora).getTime()) / 86_400_000)
+    if (dias > -30) return RELATIVO.format(dias, 'day')
+    if (dias > -365) return RELATIVO.format(Math.round(dias / 30), 'month')
+    return RELATIVO.format(Math.round(dias / 365), 'year')
+}
+
+/** Valor para <input type="datetime-local"> no fuso de Brasília. */
+export function toDateTimeLocal(value: string | Date): string {
+    const partes = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+    }).format(new Date(value))
+    return partes.replace(' ', 'T')
+}
+
+/** Converte o valor de <input type="datetime-local"> (horário de Brasília) para ISO. */
+export function fromDateTimeLocal(value: string): string {
+    return new Date(`${value}:00-03:00`).toISOString()
+}
